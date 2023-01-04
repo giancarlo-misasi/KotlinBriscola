@@ -1,0 +1,45 @@
+# Idea files
+.idea
+.idea/**/workspace.xml
+.idea/**/tasks.xml
+.idea/**/usage.statistics.xml
+.idea/**/dictionaries
+.idea/**/shelf
+.idea/**/aws.xml
+.idea/**/contentModel.xml
+.idea/**/dataSources/
+.idea/**/dataSources.ids
+.idea/**/dataSources.local.xml
+.idea/**/sqlDataSources.xml
+.idea/**/dynamic.xml
+.idea/**/uiDesigner.xml
+.idea/**/dbnavigator.xml
+.idea/**/gradle.xml
+.idea/**/libraries
+
+# Gradle files
+.gradle
+gradle-app.setting
+.gradletasknamecache
+
+# Build files
+build
+**/build/
+
+# Miscellaneous files
+*.log
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+*.class
+hs_err_pid*
+.classpath
+
+# Exceptional cases
+!src/**/build/
+!gradle-wrapper.jar
+!gradle-wrapper.properties
