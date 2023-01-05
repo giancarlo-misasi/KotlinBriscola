@@ -27,7 +27,7 @@ class Deck {
     }
 
     fun skipTo(index: Int) {
-        if (index >= 0 && index < cards.size) {
+        if (index >= 0 && index <= cards.size) {
             this.index = index
         }
     }
