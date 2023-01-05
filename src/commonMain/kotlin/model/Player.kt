@@ -55,6 +55,16 @@ class Player {
         return sum
     }
 
+    override fun toString(): String {
+        return buildString {
+            append("[s=$points]")
+            for ((i, card) in cards.withIndex()) {
+                append(card)
+                if (i < cards.size - 1) append(",")
+            }
+        }
+    }
+
     companion object {
         fun deserialize(value: Int): Player {
             var remaining = value

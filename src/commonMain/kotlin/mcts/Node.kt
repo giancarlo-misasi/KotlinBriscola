@@ -9,23 +9,24 @@ class Node<State>(
     val data: State,
     val parent: Node<State>?,
     val action: Action<State>,
-    val expansion: ExpansionStrategy<State>,
+    createExpansionStrategy: () -> ExpansionStrategy<State>,
 ) where State : Copyable<State> {
     val children = mutableListOf<Node<State>>()
     var numVisits = 0
+
+    private val expansionStrategy = createExpansionStrategy()
     private var scoreSum = 0f
 
-    fun getAvgScore() = scoreSum / numVisits
-    fun generateNextAction(): Action<State> = expansion.generateNext(data)
+    val exploitationScore: Float get() = scoreSum / numVisits
+    val explorationScore: Float get() = if (parent == null) 0f else sqrt(ln(parent.numVisits.toDouble()) / numVisits).toFloat()
+
+    fun getUctScore(c: Float) = exploitationScore + c * explorationScore
+    fun generateNextAction(): Action<State> = expansionStrategy.generateNext(data)
     fun addChild(child: Node<State>) = children.add(child)
-    fun shouldExpand() = children.isEmpty() || expansion.canGenerateNext(data)
+    fun shouldExpand() = children.isEmpty() || expansionStrategy.canGenerateNext(data)
 
     fun update(score: Float) {
         scoreSum += score
         numVisits++
-    }
-
-    fun getUctScore(parentNumVisits: Int, c: Float): Float {
-        return getAvgScore() + c * sqrt(ln(parentNumVisits.toDouble()) / numVisits).toFloat()
     }
 }

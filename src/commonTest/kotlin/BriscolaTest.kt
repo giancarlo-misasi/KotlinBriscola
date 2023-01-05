@@ -18,8 +18,8 @@ class BriscolaTest {
     @Test
     fun playGame() {
         val briscola = Briscola(2)
-
         briscola.setup(26)
+
         while (briscola.phase == Phase.PLAY) {
             briscola.play(briscola.currentPlayer().cards().first())
             briscola.play(briscola.currentPlayer().cards().first())

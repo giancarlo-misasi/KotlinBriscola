@@ -56,6 +56,16 @@ class Deck {
 
     fun serialize(): Int = seed + index
 
+    override fun toString(): String {
+        return buildString {
+            for ((i, card) in cards.withIndex()) {
+                if (i == index) append(">")
+                append(card)
+                if (i < cards.size - 1) append(",")
+            }
+        }
+    }
+
     companion object {
         fun deserialize(value: Int): Deck = Deck(value / 100, value % 100)
     }

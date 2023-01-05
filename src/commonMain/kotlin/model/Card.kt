@@ -1,8 +1,6 @@
 package model
 
 data class Card(val suit: Suit, val face: Face) {
-    override fun toString(): String = "$suit$face"
-
     fun isWorseThan(other: Card, trump: Suit): Boolean {
         if (suit == other.suit) {
             return other.face > face;
@@ -11,6 +9,8 @@ data class Card(val suit: Suit, val face: Face) {
     }
 
     fun serialize(): Int = suit.ordinal * 10 + face.ordinal
+
+    override fun toString(): String = "$face$suit"
 
     companion object {
         fun deserialize(value: Int): Card = Card(

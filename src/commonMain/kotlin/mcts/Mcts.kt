@@ -8,12 +8,12 @@ class Mcts<State>(
     private val action: Action<State>,
     private val backprop: Backpropagation<State>,
     private val termination: TerminationCheck<State>,
-    private val scoring: Scoring<State>,
-    private val expansion: ExpansionStrategy<State>,
     private val playout: PlayoutStrategy<State>,
+    private val scoring: Scoring<State>,
+    private val createExpansionStrategy: () -> ExpansionStrategy<State>,
     private val generator: Random = Random(System.currentTimeMillis()),
 ) where State : Copyable<State> {
-    private val root = Node(0u, rootData, null, action, expansion)
+    private val root = Node(0u, rootData, null, action, createExpansionStrategy)
     private var currentNodeID = 0u
     private var iterations = 0
 
@@ -26,7 +26,7 @@ class Mcts<State>(
     fun calculateAction(): Action<State> {
         search()
 
-        val best = root.children.maxByOrNull { it.getAvgScore() }
+        val best = root.children.maxByOrNull { it.exploitationScore }
             ?: return playout.generateRandom(root.data.copy())
 
         return best.action
@@ -69,7 +69,7 @@ class Mcts<State>(
         }
 
         // Otherwise use the UCT formula
-        return node.children.maxBy { it.getUctScore(node.numVisits, c) }
+        return node.children.maxBy { it.getUctScore(c) }
     }
 
     private fun backprop(node: Node<State>, score: Float) {
@@ -87,7 +87,7 @@ class Mcts<State>(
         val action = node.generateNextAction()
         action.execute(data)
 
-        val newNode = Node(++currentNodeID, data, node, action, expansion)
+        val newNode = Node(++currentNodeID, data, node, action, createExpansionStrategy)
         node.addChild(newNode)
         return newNode
     }

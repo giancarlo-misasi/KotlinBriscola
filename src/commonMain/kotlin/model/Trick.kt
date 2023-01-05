@@ -60,6 +60,17 @@ class Trick {
         return sum
     }
 
+    override fun toString(): String {
+        return buildString {
+            append("[t=$trump]")
+            for ((i, card) in cards.withIndex()) {
+                if (card == winner) append(">")
+                append(card)
+                if (i < cards.size - 1) append(",")
+            }
+        }
+    }
+
     companion object {
         fun deserialize(value: Int): Trick {
             var remaining = value

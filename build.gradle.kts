@@ -85,6 +85,8 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 implementation("org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion")
+                // Using maven local repository:
+                // https://github.com/giancarlo-misasi/kotlin-game-engine-lib
                 implementation("dev.misasi.giancarlo:kotlin-game-engine:1.0.0")
             }
         }
@@ -97,6 +99,8 @@ kotlin {
         val jvmMain by getting {
             dependencies {
                 dependsOn(commonMain)
+                // Using maven local repository:
+                // https://github.com/giancarlo-misasi/kotlin-game-engine-lib
                 implementation("dev.misasi.giancarlo:kotlin-game-engine-jvm:1.0.0")
             }
         }

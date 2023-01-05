@@ -58,10 +58,11 @@ class MyViewRenderer : Renderer {
 fun main() {
     val briscola = Briscola(2)
     briscola.setup(26)
-    val mcts = BriscolaMcts.setup(briscola)
-    val action = mcts.calculateAction()
-    println(briscola)
-    println(action)
+
+
+    for (i in 0 until 100) {
+        println(BriscolaMcts.calculateBestMove(briscola))
+    }
 
     val app = App(
         "title",
