@@ -2,6 +2,6 @@ package mcts
 
 import model.Copyable
 
-interface Backpropagation<State> where State : Copyable<State> {
-    fun updateScore(state: State, backpropScore: Float): Float
+interface Backpropagation<STATE> where STATE : Copyable<STATE> {
+    fun updateScore(state: STATE, backpropScore: Float): Float
 }

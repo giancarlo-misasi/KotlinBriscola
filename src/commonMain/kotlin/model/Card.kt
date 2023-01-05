@@ -1,6 +1,9 @@
 package model
 
 data class Card(val suit: Suit, val face: Face) {
+    // NOTE: This function only works if you do winner.isWorseThan
+    // because it assumes that the only way to be better
+    // is if you are the same suit with better face or if you are a trump suit
     fun isWorseThan(other: Card, trump: Suit): Boolean {
         if (suit == other.suit) {
             return other.face > face;

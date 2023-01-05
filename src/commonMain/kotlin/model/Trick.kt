@@ -27,7 +27,7 @@ class Trick {
         cards.add(card)
         val w = winner
         return if (w == null || w.isWorseThan(card, trump)) {
-            winner = w
+            winner = card
             true
         } else {
             false

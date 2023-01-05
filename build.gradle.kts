@@ -59,6 +59,7 @@ version = "1.0-SNAPSHOT"
 
 // Versions
 val kotlinVersion = "1.8.0"
+val coroutinesVersion = "1.6.4"
 
 plugins {
     kotlin("multiplatform") version "1.8.0"
@@ -85,6 +86,7 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 implementation("org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion")
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")
                 // Using maven local repository:
                 // https://github.com/giancarlo-misasi/kotlin-game-engine-lib
                 implementation("dev.misasi.giancarlo:kotlin-game-engine:1.0.0")

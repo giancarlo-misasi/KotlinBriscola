@@ -1,9 +1,14 @@
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.runBlocking
 import model.Card
 import model.Copyable
 import model.Deck
 import model.Phase
 import model.Player
 import model.Trick
+import kotlin.random.Random
 
 data class Briscola(
     val deck: Deck,
@@ -56,6 +61,7 @@ data class Briscola(
         if (trick.full(players.size)) {
             phase = Phase.SCORE_TRICK
         }
+
         return true
     }
 
@@ -95,7 +101,9 @@ data class Briscola(
     fun serialize(): List<Int> {
         val result = mutableListOf<Int>()
         result.add(phase.ordinal)
-        result.add(deck.serialize())
+        val pair = deck.serialize()
+        result.add(pair.first)
+        result.add(pair.second)
         result.add(trick.serialize())
         result.add(dealer)
         result.add(player)
@@ -108,23 +116,72 @@ data class Briscola(
         return deserialize(serialize())
     }
 
+    override fun toString(): String {
+        return buildString {
+            append("$trick\n")
+            append("$players\n")
+            append("d: $dealer, p: $player, w: $winner\n")
+        }
+    }
+
     companion object {
         fun deserialize(data: List<Int>): Briscola {
             // need at least all fields + two players
-            if (data.size < 8) throw IllegalArgumentException("Not enough data to deserialize.")
+            if (data.size < 9) throw IllegalArgumentException("Not enough data to deserialize.")
 
             val phase = Phase.fromOrdinal(data[0])
-            val deck = Deck.deserialize(data[1])
-            val trick = Trick.deserialize(data[2])
-            val dealer = data[3]
-            val player = data[4]
-            val winner = data[5]
+            val deck = Deck.deserialize(Pair(data[1], data[2]))
+            val trick = Trick.deserialize(data[3])
+            val dealer = data[4]
+            val player = data[5]
+            val winner = data[6]
             val players = mutableListOf<Player>()
-            for (i in 6 until data.size) {
+            for (i in 7 until data.size) {
                 players.add(Player.deserialize(data[i]))
             }
 
             return Briscola(deck, trick, players, phase, dealer, player, winner)
+        }
+
+        fun simulateOnce(
+            seed: Int,
+            player1: (state: Briscola) -> Card,
+            player2: (state: Briscola) -> Card
+        ): Briscola {
+            val state = Briscola(2)
+            state.setup(seed)
+
+            while (state.phase == Phase.PLAY) {
+                if (state.player == 0) {
+                    state.play(player1(state))
+                } else {
+                    state.play(player2(state))
+                }
+                state.scoreAndTake()
+            }
+
+            return state
+        }
+
+        fun simulateMany(
+            iterations: Int,
+            player1: (state: Briscola) -> Card,
+            player2: (state: Briscola) -> Card
+        ): Double {
+            var p1wins = 0
+            val random = Random(System.currentTimeMillis())
+            val winPercentage = runBlocking {
+                val wins: List<Int> = (0 until iterations).map{
+                    val r = random.nextInt()
+                    async(Dispatchers.Default) {
+                        val result = simulateOnce(r, player1, player2)
+                        val t = result.teamScores()
+                        return@async if (t[0] > t[1]) 1 else 0
+                    }
+                }.awaitAll()
+                return@runBlocking wins.sum() / iterations.toDouble()
+            }
+            return winPercentage
         }
 
         private fun wrapIncrement(current: Int, max: Int) = (current + 1) % max

@@ -1,6 +1,5 @@
 package model
 
-import kotlin.math.max
 import kotlin.random.Random
 
 class Deck {
@@ -21,20 +20,9 @@ class Deck {
         && seed == other.seed
         && index == other.index
 
-    fun reset() {
-        seed = 0
-        index = 0
-        cards.clear()
-        for (suit in Suit.values()) {
-            for (face in Face.values()) {
-                cards.add(Card(suit, face))
-            }
-        }
-    }
-
     fun shuffle(seed: Int) {
-        // reserve < 100 for serialization
-        this.seed = 100 * max(0, seed)
+        reset() // start fresh (easier to reproduce a deck)
+        this.seed = seed
         cards.shuffle(Random(this.seed))
     }
 
@@ -54,7 +42,7 @@ class Deck {
 
     fun size(): Int = cards.size
 
-    fun serialize(): Int = seed + index
+    fun serialize(): Pair<Int, Int> = Pair(seed, index)
 
     override fun toString(): String {
         return buildString {
@@ -66,7 +54,18 @@ class Deck {
         }
     }
 
+    private fun reset() {
+        seed = 0
+        index = 0
+        cards.clear()
+        for (suit in Suit.values()) {
+            for (face in Face.values()) {
+                cards.add(Card(suit, face))
+            }
+        }
+    }
+
     companion object {
-        fun deserialize(value: Int): Deck = Deck(value / 100, value % 100)
+        fun deserialize(value: Pair<Int, Int>): Deck = Deck(value.first, value.second)
     }
 }

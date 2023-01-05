@@ -15,6 +15,7 @@ import dev.misasi.giancarlo.ux.views.HorizontalLayout
 import dev.misasi.giancarlo.ux.views.VerticalLayout
 import dev.misasi.giancarlo.windowHeight
 import dev.misasi.giancarlo.windowWidth
+import model.Card
 
 class MyView : View() {
     override fun onEvent(context: AppContext, event: Event): Boolean {
@@ -53,34 +54,36 @@ class MyViewRenderer : Renderer {
     }
 }
 
-
+fun human(state: Briscola): Card {
+    val cards = state.currentPlayer().cards();
+    println(state)
+    val rec = BriscolaMcts.calculateMctsMove(state)
+    println("rec=${rec}")
+    val i = readln().toInt()
+    return cards[i]
+}
 
 fun main() {
-    val briscola = Briscola(2)
-    briscola.setup(26)
+    val state = Briscola.simulateOnce(1, ::human, ::human)
+    println(state)
 
-
-    for (i in 0 until 100) {
-        println(BriscolaMcts.calculateMctsMove(briscola))
-    }
-
-    val app = App(
-        "title",
-        Vector2i(windowWidth + 100, windowHeight),
-        fullScreen = false,
-        refreshRate = 60,
-        vsync = false,
-        Vector2i(windowWidth, windowHeight),
-    )
-    app.enableResizeEvents(true)
-    app.enableMouseEvents(true)
-    app.enableMouseButtonEvents(true)
-    app.register(dev.misasi.giancarlo.MyView::class, MyViewRenderer())
-
-    val rootView = HorizontalLayout()
-    val child1 = VerticalLayout()
-    val child2 = dev.misasi.giancarlo.MyView()
-    child1.add(child2)
-    rootView.children.add(child1)
-    app.run(rootView);
+//    val app = App(
+//        "title",
+//        Vector2i(windowWidth + 100, windowHeight),
+//        fullScreen = false,
+//        refreshRate = 60,
+//        vsync = false,
+//        Vector2i(windowWidth, windowHeight),
+//    )
+//    app.enableResizeEvents(true)
+//    app.enableMouseEvents(true)
+//    app.enableMouseButtonEvents(true)
+//    app.register(dev.misasi.giancarlo.MyView::class, MyViewRenderer())
+//
+//    val rootView = HorizontalLayout()
+//    val child1 = VerticalLayout()
+//    val child2 = dev.misasi.giancarlo.MyView()
+//    child1.add(child2)
+//    rootView.children.add(child1)
+//    app.run(rootView);
 }

@@ -28,8 +28,8 @@ class BriscolaMcts {
         override fun isTerminal(state: Briscola): Boolean = state.phase == Phase.END
     }
 
-    class BriscolaPlayoutStrategy : PlayoutStrategy<Briscola> {
-        override fun generateRandom(state: Briscola) = calculateRandomMove(state)
+    class BriscolaPlayoutStrategy : PlayoutStrategy<BriscolaAction, Briscola> {
+        override fun generateRandom(state: Briscola) = BriscolaAction(calculateRandomMove(state))
     }
 
     class BriscolaScoring(player: Int) : Scoring<Briscola> {
@@ -49,10 +49,10 @@ class BriscolaMcts {
         }
     }
 
-    class BriscolaExpansionStrategy : ExpansionStrategy<Briscola> {
+    class BriscolaExpansionStrategy : ExpansionStrategy<BriscolaAction, Briscola> {
         private var index = 0
 
-        override fun generateNext(state: Briscola): Action<Briscola> {
+        override fun generateNext(state: Briscola): BriscolaAction {
             val i = index++
             return BriscolaAction(state.currentPlayer().cards()[i])
         }
@@ -69,38 +69,38 @@ class BriscolaMcts {
         private val termination = BriscolaTerminationCheck()
         private val playout = BriscolaPlayoutStrategy()
 
-        fun calculateRandomMove(state: Briscola): Action<Briscola> {
+        fun calculateRandomMove(state: Briscola): Card {
             val cards = state.currentPlayer().cards()
-            return BriscolaAction(cards[generator.nextInt(cards.size)])
+            return cards[generator.nextInt(cards.size)]
         }
 
-        fun calculateRuleBasedMove(state: Briscola): Action<Briscola> {
+        fun calculateRuleBasedMove(state: Briscola): Card {
             val cards = state.currentPlayer().cards()
             // if no winner yet, play the  highest ordered card (todo: maybe sort trumps later)
-            val w = state.trick.winner ?: return BriscolaAction(cards.maxBy { it.face.order })
+            val w = state.trick.winner ?: return cards.maxBy { it.face.order }
 
             // if it is not worth winning, play our worst card
             if (state.trick.value() == 0) {
                 val card = firstLowestLoser(state, w, cards)
                 if (card != null) {
-                    return BriscolaAction(card)
+                    return card
                 }
             }
 
             // otherwise, we either want to win, or have no choice but to win
             val card = firstLowestWinner(state, w, cards)
             if (card != null) {
-                return BriscolaAction(card)
+                return card
             }
 
             // otherwise, we could not win, so just play our lowest card
             // since we couldn't win, we are guaranteed to have a lowest loser
-            return BriscolaAction(firstLowestLoser(state, w, cards)!!)
+            return firstLowestLoser(state, w, cards)!!
         }
 
-        fun calculateMctsMove(state: Briscola): Action<Briscola> {
+        fun calculateMctsMove(state: Briscola): Card {
             val mcts = Mcts(
-                state,
+                state.copy(),
                 action,
                 backprop,
                 termination,
@@ -109,8 +109,9 @@ class BriscolaMcts {
                 { BriscolaExpansionStrategy() }
             )
             mcts.allowedComputationTime = 100
-            mcts.minIterations = 20
-            return mcts.calculateAction()
+            mcts.minIterations = 5
+            mcts.c = 0.4f
+            return mcts.calculateAction().card
         }
 
         private fun firstLowestWinner(state: Briscola, winner: Card, cards: List<Card>): Card? {
@@ -121,7 +122,7 @@ class BriscolaMcts {
 
         private fun firstLowestLoser(state: Briscola, winner: Card, cards: List<Card>): Card? {
             return firstOrNullPreferNonTrump(state, cards
-                .filter { it.isWorseThan(winner, state.trick.trump) }
+                .filterNot { winner.isWorseThan(it, state.trick.trump) }
                 .sortedBy { it.face.order })
         }
 

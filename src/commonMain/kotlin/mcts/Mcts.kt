@@ -1,18 +1,19 @@
 package mcts
 
 import model.Copyable
+import java.io.File
 import kotlin.random.Random
 
-class Mcts<State>(
-    rootData: State,
-    private val action: Action<State>,
-    private val backprop: Backpropagation<State>,
-    private val termination: TerminationCheck<State>,
-    private val playout: PlayoutStrategy<State>,
-    private val scoring: Scoring<State>,
-    private val createExpansionStrategy: () -> ExpansionStrategy<State>,
+class Mcts<ACTION, STATE>(
+    rootData: STATE,
+    action: ACTION,
+    private val backprop: Backpropagation<STATE>,
+    private val termination: TerminationCheck<STATE>,
+    private val playout: PlayoutStrategy<ACTION, STATE>,
+    private val scoring: Scoring<STATE>,
+    private val createExpansionStrategy: () -> ExpansionStrategy<ACTION, STATE>,
     private val generator: Random = Random(System.currentTimeMillis()),
-) where State : Copyable<State> {
+) where STATE : Copyable<STATE>, ACTION : Action<STATE> {
     private val root = Node(0u, rootData, null, action, createExpansionStrategy)
     private var currentNodeID = 0u
     private var iterations = 0
@@ -23,18 +24,35 @@ class Mcts<State>(
     var minT = DEFAULT_MIN_T
     var minVisits = DEFAULT_MIN_VISITS
 
-    fun calculateAction(): Action<State> {
+    fun calculateAction(): ACTION {
         search()
 
         val best = root.children.maxByOrNull { it.exploitationScore }
             ?: return playout.generateRandom(root.data.copy())
 
+        File("BriscolaGraph.dot").writeText(toGraphvizDotFileString())
         return best.action
+    }
+
+    fun toGraphvizDotFileString(): String {
+        val worklist = mutableListOf(root)
+        return buildString {
+            append("digraph MCTS {\n")
+            while (!worklist.isEmpty()) {
+                val current = worklist.removeFirst()
+                append("${current.id} [label=\"${current.data}\nVisits: ${current.numVisits}\nScore: ${current.exploitationScore}\"];\n")
+                if (current.id != root.id) {
+                    append("${current.parent?.id} -> ${current.id} [label=\"${current.action}\"]\n")
+                }
+                worklist.addAll(current.children)
+            }
+            append("}\n")
+        }
     }
 
     private fun search() {
         val time = System.currentTimeMillis()
-        while (System.currentTimeMillis() - time > allowedComputationTime || iterations < minIterations) {
+        while ((System.currentTimeMillis() - time) < allowedComputationTime || iterations < minIterations) {
             iterations++
 
             // Selection
@@ -61,7 +79,7 @@ class Mcts<State>(
         }
     }
 
-    private fun select(node: Node<State>): Node<State> {
+    private fun select(node: Node<ACTION, STATE>): Node<ACTION, STATE> {
         // Select randomly if we don't have enough visits
         if (node.numVisits < minVisits) {
             // should have at least 1 child
@@ -72,7 +90,7 @@ class Mcts<State>(
         return node.children.maxBy { it.getUctScore(c) }
     }
 
-    private fun backprop(node: Node<State>, score: Float) {
+    private fun backprop(node: Node<ACTION, STATE>, score: Float) {
         node.update(backprop.updateScore(node.data, score))
 
         var current = node.parent
@@ -82,7 +100,7 @@ class Mcts<State>(
         }
     }
 
-    private fun expandNext(node: Node<State>): Node<State> {
+    private fun expandNext(node: Node<ACTION, STATE>): Node<ACTION, STATE> {
         val data = node.data.copy()
         val action = node.generateNextAction()
         action.execute(data)
@@ -92,7 +110,7 @@ class Mcts<State>(
         return newNode
     }
 
-    private fun simulate(node: Node<State>) {
+    private fun simulate(node: Node<ACTION, STATE>) {
         val state = node.data.copy()
         while (!termination.isTerminal(state)) {
             val action = playout.generateRandom(state)

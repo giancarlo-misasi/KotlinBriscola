@@ -2,6 +2,6 @@ package mcts
 
 import model.Copyable
 
-interface PlayoutStrategy<State> where State : Copyable<State> {
-    fun generateRandom(state: State): Action<State>
+interface PlayoutStrategy<ACTION, STATE> where STATE : Copyable<STATE>, ACTION : Action<STATE> {
+    fun generateRandom(state: STATE): ACTION
 }

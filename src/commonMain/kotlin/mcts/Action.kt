@@ -2,6 +2,6 @@ package mcts
 
 import model.Copyable
 
-interface Action<State> where State : Copyable<State> {
-    fun execute(state: State)
+interface Action<STATE> where STATE : Copyable<STATE> {
+    fun execute(state: STATE)
 }
