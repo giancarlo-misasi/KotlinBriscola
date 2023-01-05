@@ -8,8 +8,9 @@ class Player {
 
     constructor()
 
-    private constructor(cards: List<Card>) {
+    private constructor(cards: List<Card>, points: Int) {
         cards.forEach { add(it) }
+        this.points = points
     }
 
     override fun equals(other: Any?): Boolean = other is Player
@@ -37,12 +38,13 @@ class Player {
 
     fun serialize(): Int {
         // serializing approach:
-        //      40 - no card
-        //   3_900 - suit = 3, face = 9
-        // 210_000 - suit = 2, face = 1
+        //         120 - my points
+        //      40_000 - no card
+        //   3_900_000 - suit = 3, face = 9
+        // 210_000_000 - suit = 2, face = 1
 
-        var sum = 0
-        var multiplier = 1
+        var sum = points
+        var multiplier = 1000
         for (i in 0 until 3) {
             sum += if (i < cards.size) {
                 // add in reverse order to deserialize in the correct order
@@ -68,7 +70,7 @@ class Player {
     companion object {
         fun deserialize(value: Int): Player {
             var remaining = value
-            var divisor = 10_000
+            var divisor = 10_000_000
             val cards = mutableListOf<Card>()
             for (i in 0 until 3) {
                 val c = remaining / divisor
@@ -78,7 +80,7 @@ class Player {
                 remaining %= divisor
                 divisor /= 100
             }
-            return Player(cards)
+            return Player(cards, remaining)
         }
     }
 }
