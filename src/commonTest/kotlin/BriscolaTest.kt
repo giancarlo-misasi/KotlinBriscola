@@ -16,6 +16,7 @@ class BriscolaTest {
     @Test
     fun playGame() {
         val s = Briscola.simulateOnce(
+            Briscola(2),
             26,
             { s -> s.currentPlayer().cards().first() },
             { s -> s.currentPlayer().cards().first() }

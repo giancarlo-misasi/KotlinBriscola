@@ -30,7 +30,7 @@ class Mcts<ACTION, STATE>(
         val best = root.children.maxByOrNull { it.exploitationScore }
             ?: return playout.generateRandom(root.data.copy())
 
-        File("BriscolaGraph.dot").writeText(toGraphvizDotFileString())
+        if (DEBUG) File("BriscolaGraph.dot").writeText(toGraphvizDotFileString())
         return best.action
     }
 
@@ -121,6 +121,7 @@ class Mcts<ACTION, STATE>(
     }
 
     companion object {
+        const val DEBUG = true
         const val DEFAULT_TIME = 500
         const val DEFAULT_MIN_ITERATIONS = 0
         const val DEFAULT_C = 0.5f

@@ -117,11 +117,7 @@ data class Briscola(
     }
 
     override fun toString(): String {
-        return buildString {
-            append("$trick\n")
-            append("$players\n")
-            append("d: $dealer, p: $player, w: $winner\n")
-        }
+        return "$trick, $players, d: $dealer, p: $player, w: $winner"
     }
 
     companion object {
@@ -144,19 +140,27 @@ data class Briscola(
         }
 
         fun simulateOnce(
+            state: Briscola,
             seed: Int,
             player1: (state: Briscola) -> Card,
-            player2: (state: Briscola) -> Card
+            player2: (state: Briscola) -> Card,
+            untilCardsRemaining: Int? = null
         ): Briscola {
-            val state = Briscola(2)
-            state.setup(seed)
+            if (state.phase == Phase.SETUP || state.phase == Phase.END) {
+                state.setup(seed)
+            }
 
             while (state.phase == Phase.PLAY) {
+                if (untilCardsRemaining != null && state.deck.remainingCards() <= untilCardsRemaining) {
+                    break
+                }
+
                 if (state.player == 0) {
                     state.play(player1(state))
                 } else {
                     state.play(player2(state))
                 }
+
                 state.scoreAndTake()
             }
 
@@ -174,7 +178,8 @@ data class Briscola(
                 val wins: List<Int> = (0 until iterations).map{
                     val r = random.nextInt()
                     async(Dispatchers.Default) {
-                        val result = simulateOnce(r, player1, player2)
+                        val s = Briscola(2)
+                        val result = simulateOnce(s, r, player1, player2)
                         val t = result.teamScores()
                         return@async if (t[0] > t[1]) 1 else 0
                     }

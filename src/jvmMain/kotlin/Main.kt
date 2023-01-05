@@ -16,6 +16,7 @@ import dev.misasi.giancarlo.ux.views.VerticalLayout
 import dev.misasi.giancarlo.windowHeight
 import dev.misasi.giancarlo.windowWidth
 import model.Card
+import kotlin.random.Random
 
 class MyView : View() {
     override fun onEvent(context: AppContext, event: Event): Boolean {
@@ -63,8 +64,15 @@ fun human(state: Briscola): Card {
     return cards[i]
 }
 
+fun random(state: Briscola): Card {
+    val cards = state.currentPlayer().cards();
+    val i = Random(System.currentTimeMillis()).nextInt(cards.size)
+    return cards[i]
+}
+
 fun main() {
-    val state = Briscola.simulateOnce(1, ::human, ::human)
+    val state = Briscola.simulateOnce(Briscola(2), 1, ::random, ::random, 2)
+    Briscola.simulateOnce(state, 0, ::human, ::human)
     println(state)
 
 //    val app = App(

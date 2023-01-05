@@ -14,7 +14,9 @@ import kotlin.random.Random
 class BriscolaMcts {
     class BriscolaAction(val card: Card) : Action<Briscola> {
         override fun execute(state: Briscola) {
-            if (state.play(card)) state.scoreAndTake()
+            if (state.play(card)) {
+                state.scoreAndTake()
+            }
         }
 
         override fun toString(): String = card.toString()
@@ -108,8 +110,8 @@ class BriscolaMcts {
                 BriscolaScoring(state.player),
                 { BriscolaExpansionStrategy() }
             )
-            mcts.allowedComputationTime = 100
-            mcts.minIterations = 5
+            mcts.allowedComputationTime = 200
+            mcts.minIterations = 10
             mcts.c = 0.4f
             return mcts.calculateAction().card
         }
