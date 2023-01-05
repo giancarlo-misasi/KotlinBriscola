@@ -61,7 +61,7 @@ fun main() {
 
 
     for (i in 0 until 100) {
-        println(BriscolaMcts.calculateBestMove(briscola))
+        println(BriscolaMcts.calculateMctsMove(briscola))
     }
 
     val app = App(

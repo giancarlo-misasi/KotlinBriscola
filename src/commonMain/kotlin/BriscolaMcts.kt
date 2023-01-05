@@ -74,7 +74,31 @@ class BriscolaMcts {
             return BriscolaAction(cards[generator.nextInt(cards.size)])
         }
 
-        fun calculateBestMove(state: Briscola): Action<Briscola> {
+        fun calculateRuleBasedMove(state: Briscola): Action<Briscola> {
+            val cards = state.currentPlayer().cards()
+            // if no winner yet, play the  highest ordered card (todo: maybe sort trumps later)
+            val w = state.trick.winner ?: return BriscolaAction(cards.maxBy { it.face.order })
+
+            // if it is not worth winning, play our worst card
+            if (state.trick.value() == 0) {
+                val card = firstLowestLoser(state, w, cards)
+                if (card != null) {
+                    return BriscolaAction(card)
+                }
+            }
+
+            // otherwise, we either want to win, or have no choice but to win
+            val card = firstLowestWinner(state, w, cards)
+            if (card != null) {
+                return BriscolaAction(card)
+            }
+
+            // otherwise, we could not win, so just play our lowest card
+            // since we couldn't win, we are guaranteed to have a lowest loser
+            return BriscolaAction(firstLowestLoser(state, w, cards)!!)
+        }
+
+        fun calculateMctsMove(state: Briscola): Action<Briscola> {
             val mcts = Mcts(
                 state,
                 action,
@@ -87,6 +111,22 @@ class BriscolaMcts {
             mcts.allowedComputationTime = 100
             mcts.minIterations = 20
             return mcts.calculateAction()
+        }
+
+        private fun firstLowestWinner(state: Briscola, winner: Card, cards: List<Card>): Card? {
+            return firstOrNullPreferNonTrump(state, cards
+                .filter { winner.isWorseThan(it, state.trick.trump) }
+                .sortedBy { it.face.order })
+        }
+
+        private fun firstLowestLoser(state: Briscola, winner: Card, cards: List<Card>): Card? {
+            return firstOrNullPreferNonTrump(state, cards
+                .filter { it.isWorseThan(winner, state.trick.trump) }
+                .sortedBy { it.face.order })
+        }
+
+        private fun firstOrNullPreferNonTrump(state: Briscola, cards: List<Card>): Card? {
+            return cards.firstOrNull { it.suit != state.trick.trump } ?: cards.firstOrNull()
         }
     }
 }
