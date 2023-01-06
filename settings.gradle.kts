@@ -23,5 +23,5 @@
  *
  */
 
-rootProject.name = "KotlinBriscola"
+rootProject.name = "kotlin-briscola"
 
