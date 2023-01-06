@@ -1,10 +1,10 @@
 package model
 
-enum class Suit(val symbol: String) {
-    HEART("♥"),     // Cups
-    SPADE("♠"),     // Swords
-    CLUB("♣"),      // Clubs
-    DIAMOND("♦");   // Coins
+enum class Suit(val symbol: String, val alias: String) {
+    HEART("♥", "Cup"),      // Cups
+    SPADE("♠", "Sword"),    // Swords
+    CLUB("♣", "Club"),      // Clubs
+    DIAMOND("♦", "Coin");   // Coins
 
     override fun toString(): String = symbol
 

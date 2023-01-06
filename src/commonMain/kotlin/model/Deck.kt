@@ -17,8 +17,8 @@ class Deck {
     }
 
     override fun equals(other: Any?): Boolean = other is Deck
-        && seed == other.seed
-        && index == other.index
+            && seed == other.seed
+            && index == other.index
 
     fun shuffle(seed: Int) {
         reset() // start fresh (easier to reproduce a deck)
@@ -58,11 +58,7 @@ class Deck {
         seed = 0
         index = 0
         cards.clear()
-        for (suit in Suit.values()) {
-            for (face in Face.values()) {
-                cards.add(Card(suit, face))
-            }
-        }
+        cards.addAll(Suit.values().flatMap { s -> Face.values().map { f -> Card(s, f) } })
     }
 
     companion object {

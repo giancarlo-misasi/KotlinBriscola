@@ -1,7 +1,7 @@
 package model
 
 enum class Face(val symbol: String, val order: Int, val value: Int) {
-    TWO("3", 0, 0),
+    TWO("2", 0, 0),
     FOUR("4", 1, 0),
     FIVE("5", 2, 0),
     SIX("6", 3, 0),
