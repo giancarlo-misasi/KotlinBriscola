@@ -1,4 +1,6 @@
 import dev.misasi.giancarlo.drawing.DrawState
+import dev.misasi.giancarlo.drawing.Font
+import dev.misasi.giancarlo.drawing.Rgb8
 import dev.misasi.giancarlo.events.Event
 import dev.misasi.giancarlo.events.input.mouse.MouseButton
 import dev.misasi.giancarlo.events.input.mouse.MouseButtonAction
@@ -11,13 +13,14 @@ import dev.misasi.giancarlo.math.Vector2i
 import dev.misasi.giancarlo.ux.App
 import dev.misasi.giancarlo.ux.AppContext
 import dev.misasi.giancarlo.ux.View
-import dev.misasi.giancarlo.ux.attributes.Inset
+import dev.misasi.giancarlo.ux.views.Button
 import dev.misasi.giancarlo.ux.views.HorizontalLayout
 import dev.misasi.giancarlo.ux.views.VerticalLayout
 import model.Card
 import model.Deck
 import model.Player
 import model.Trick
+import kotlin.system.exitProcess
 
 var cardSet = 0
 val cardSets = listOf("Napoletane", "Piacentine", "Romagnole", "Sarde", "Siciliane")
@@ -38,17 +41,29 @@ class BriscolaController {
     var state = Briscola(2)
 
     init {
+        val buttons = HorizontalLayout()
+        buttons.add(Button("SardeCardSetBlank", Font.ROBOTO24.copy(color = Rgb8.BLACK),"New Game", Vector2i(200, 100)) {
+            newGame()
+        })
+        buttons.add(Button("SardeCardSetBlank", Font.ROBOTO24.copy(color = Rgb8.BLACK),"Change Style", Vector2i(200, 100)) {
+            nextCardSetPlease()
+        })
+        buttons.add(Button("SardeCardSetBlank", Font.ROBOTO24.copy(color = Rgb8.BLACK),"Quit", Vector2i(200, 100)) {
+            exitProcess(0)
+        })
+        rootView.add(buttons)
+
         val child1 = HorizontalLayout()
-        child1.padding = Inset(4, 4, 4, 4)
+//        child1.padding = Inset(4, 4, 4, 4)
         child1.add(p1)
         val child2 = HorizontalLayout()
-        child2.padding = Inset(4, 4, 4, 4)
+//        child2.padding = Inset(4, 4, 4, 4)
         child2.add(dv)
         val child3 = HorizontalLayout()
-        child3.padding = Inset(4, 4, 4, 4)
+//        child3.padding = Inset(4, 4, 4, 4)
         child3.add(tv)
         val child4 = HorizontalLayout()
-        child4.padding = Inset(4, 4, 4, 4)
+//        child4.padding = Inset(4, 4, 4, 4)
         child4.add(p2)
         rootView.add(child1)
         rootView.add(child2)
@@ -143,6 +158,7 @@ class DeckView(
                 translation = Vector2f(0, 0)
             )
         )
+        state.putText("Really? AW WA VA TA", font = Font.ROBOTO16.copy(color = Rgb8.RED))
     }
 
     override fun onEvent(context: AppContext, event: Event): Boolean {
@@ -168,7 +184,7 @@ class PlayerView(
     var selectedCard: Card? = null
 
     init {
-        size = Vector2i(480, 256)
+        size = Vector2i(736, 256)
     }
 
     override fun onUpdateDrawState(context: AppContext, state: DrawState) {
@@ -178,12 +194,14 @@ class PlayerView(
         var offset = 0
         val increment = 256 / model.cards().size
         for (card in model.cards()) {
-            state.putSprite(
-                cardMaterial(card), AffineTransform(
-                    scale = Vector2f(160, 256),
-                    translation = Vector2f(offset, 0)
+            if (card != selectedCard) {
+                state.putSprite(
+                    cardMaterial(card), AffineTransform(
+                        scale = Vector2f(160, 256),
+                        translation = Vector2f(offset, 0)
+                    )
                 )
-            )
+            }
             offset += increment
         }
 
@@ -212,13 +230,18 @@ class PlayerView(
 
     override fun onEvent(context: AppContext, event: Event): Boolean {
         val model = player ?: return false
+        val contains = absoluteBounds?.contains(event.absolutePosition) ?: false
+        if (!contains) return false
+
+        val position = event.absolutePosition.minus(absolutePosition!!)
+        println(position)
 
         if (event is MouseEvent) {
             val cardCount = model.cards().size
             if (cardCount > 0) {
                 val increment = 256 / cardCount
                 for (i in 0 until cardCount) {
-                    if (event.position.x < increment * (i + 1)) {
+                    if (position.x < increment * (i + 1)) {
                         selectedCard = model.cards()[i]
                         return true
                     }
@@ -228,20 +251,23 @@ class PlayerView(
 
         if (event is MouseButtonEvent
             && event.button == MouseButton.RIGHT
-            && event.action == MouseButtonAction.RELEASE) {
+            && event.action == MouseButtonAction.RELEASE
+        ) {
             controller.newGame()
         }
 
         if (event is MouseButtonEvent
             && event.button == MouseButton.MIDDLE
-            && event.action == MouseButtonAction.RELEASE) {
+            && event.action == MouseButtonAction.RELEASE
+        ) {
             controller.nextCardSet()
         }
 
 
         if (event is MouseButtonEvent
             && event.button == MouseButton.LEFT
-            && event.action == MouseButtonAction.RELEASE) {
+            && event.action == MouseButtonAction.RELEASE
+        ) {
             selectedCard?.let { controller.playCard(it) }
             return true
         }
@@ -288,14 +314,15 @@ fun main() {
 
     val app = App(
         "title",
-        Vector2i(1920, 1080),
+        Vector2i(1600, 1400),
         fullScreen = false,
         refreshRate = 60,
         vsync = false,
-        Vector2i(1920, 1080),
+        Vector2i(1600, 1400),
     )
     app.enableMouseEvents(true)
     app.enableMouseButtonEvents(true)
+    app.debugLayout = true
 
     val controller = BriscolaController()
 
